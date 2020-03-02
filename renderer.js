@@ -1,19 +1,18 @@
 //pyk bank_type, page_type obj 구분하기, 추후 .json 파일로 따로 떼보기
 const json_data = {
     "bank_type":
-    [
-        //보안 문제로 iframe 막혀있음
-        // {
-        //     "id":"kakao_bank",
-        //     "name":"카카오뱅크",
-        //     "event_page":"https://www.kakaobank.com/events",
-        //     "product_page":"https://www.kakaobank.com/products/withdrawal"
-        // },
+    [        
         {
             "id":"woori_bank",
             "name":"우리은행",
             "event_page":"https://spot.wooribank.com/pot/Dream?withyou=EVEVT0001",
             "product_page":"https://spot.wooribank.com/pot/Dream?withyou=po"
+        },
+        {
+            "id":"kakao_bank",
+            "name":"카카오뱅크",
+            "event_page":"https://www.kakaobank.com/events",
+            "product_page":"https://www.kakaobank.com/products/withdrawal"
         },
         {
             "id":"shinhan_bank",
@@ -25,8 +24,7 @@ const json_data = {
             "id":"kb_bank",
             "name":"KB국민은행",
             "event_page":"https://omoney.kbstar.com/quics?page=oevent&QSL=F#loading",
-            //"product_page":"https://obank1.kbstar.com/quics?page=C030037"
-            "product_page":"https://obank.kbstar.com/quics?page=C030037&amp;QSL=F"
+            "product_page":"https://obank1.kbstar.com/quics?page=C030037"
         },
         {
             "id":"hana_bank",
@@ -37,7 +35,7 @@ const json_data = {
         {
             "id":"nh_bank",
             "name":"NH농협은행",
-            "event_page":"https://banking.nonghyup.com",
+            "event_page":"https://banking.nonghyup.com/servlet/content/ip/nl/IPNL0001M.thtml",            
             "product_page":"https://smartmarket.nonghyup.com"
         }
     ],
@@ -57,6 +55,7 @@ const json_data = {
 
 var g_cur_bank_type;
 var g_cur_page_type;
+var link_element;
 var iframe_element;
 var bank_type_element;
 var page_type_element;
@@ -71,11 +70,13 @@ function OnDomLoaded()
     Init();
     SetBankTypeUI();
     SetPageTypeUI();    
-    //SetBankPageView();
+    SetBankPageView();
 }
 
 function Init()
 {
+    link_element = document.querySelector("#bank_page_link");
+
     iframe_element = document.querySelector("#bank_page_view");
     iframe_element.addEventListener('load', function()
     {
@@ -112,11 +113,15 @@ function SetPageTypeUI()
     var html = "";
     for (var i = 0; i < json_data.page_type.length; ++i) 
     {
-        html += '<input type="radio" name="page_type" id=' + json_data.page_type[i].id + ' onclick=OnClickPageType("' + json_data.page_type[i].id +'")>' + 
+        html += '<input type="radio" name="page_type" id=' + json_data.page_type[i].id + 
+            ' onclick=OnClickPageType("' + json_data.page_type[i].id +'")>' + 
             '<label for=' + json_data.page_type[i].id + '>' + json_data.page_type[i].name + '</label>';
     }
 
     page_type_element.innerHTML = html;
+
+    var first_page_type = document.querySelector("#" + json_data.page_type[0].id);
+    first_page_type.checked = "checked";
 }
 
 function SetBankPageView()
@@ -125,15 +130,28 @@ function SetBankPageView()
     {
         if(json_data.bank_type[i].id == g_cur_bank_type)
         {
+            var cur_url;
             if(g_cur_page_type == "event_page")
             {
-                iframe_element.src = json_data.bank_type[i].event_page;
+                cur_url = json_data.bank_type[i].event_page;
             }
             else if(g_cur_page_type == "product_page")
             {
-                iframe_element.src = json_data.bank_type[i].product_page;                
-            }     
+                cur_url = json_data.bank_type[i].product_page;
+            }
 
+            link_element.href = cur_url;
+
+            if (g_cur_bank_type == "kakao_bank" ||
+                g_cur_bank_type == "kb_bank" && g_cur_page_type == "product_page")
+            {
+                iframe_element.src = "";
+            }
+            else
+            {
+                iframe_element.src = cur_url;
+            }            
+            
             break;
         }
     }    
@@ -141,16 +159,7 @@ function SetBankPageView()
 
 function OnIframeLoaded() 
 {   
-    //pyk 예외처리
-    //if (g_cur_bank_type == "kb_bank" && g_cur_page_type == "product_page") 
-    {
-        //alert(iframe_element);
-        //alert(iframe_element.contentDocument);
-        
-        //window.scrollTo(200);
-        iframe_element.scrollTop = 650;
-
-
+    //iframe 제어 테스트 코드
         // var iframe_doc = iframe_element.contentWindow || iframe_element.contentDocument;
         // if (iframe_doc.document != null)
         // {
@@ -159,12 +168,8 @@ function OnIframeLoaded()
 
         // if(iframe_doc != null)
         // {
-        //     //alert
-        //     //alert(iframe_doc.html);
         //     //var link = iframe_doc.querySelector(".m3");
-        //     //alert(link.href);
         // }
-    }            
 }
  
 function OnChangeBankType()
